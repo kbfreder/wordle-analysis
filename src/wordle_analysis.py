@@ -11,16 +11,10 @@ ABOUT = """
     WordleAnalysis: scripts to analzye letters
     and letter combinations found in the Wordle word list.
     """
-WORD_LIST_PATH = "../input/words_solutions.txt"
+WORD_LIST_PATH = "../input/nyt_wordle_list.txt"
 
 def parse_args():
     parser = argparse.ArgumentParser(description=ABOUT)
-    # parser.add_argument(
-    #     "-h",  "--help",
-    #     action="store_true",
-    #     help="Print help message",
-    #     default=False,
-    # )
     parser.add_argument(
         "--random",
         help="Print 10 random number of words from word list.",
@@ -42,30 +36,33 @@ class WordleAnalysis:
     """
 
     def __init__(self):
-        self.word_list = self._load_word_list()
+        self.dict_list, self.word_list = self._load_word_list()
         self._calc_letter_freq()
 
     def _load_word_list(self):
         with open(WORD_LIST_PATH, "r") as file:
-            raw_words = []
-            for line in file.readlines():
-                raw_words.append(line.strip().strip("\n"))
+            raw_words = file.readline()
         
-        word_list = []
-        for row in raw_words:
-            for x in row.split(","):
-                if x != "":
-                    word_list.append(x.strip().strip('"'))
+        raw_words = raw_words.split(',')
+        parsed_words = [w.strip('"') for w in raw_words]
         
-        return word_list
+        # this is a guess as to what the first & second parts of the list represent
+        split_idx = parsed_words.index('cigar')
+        dict_words = parsed_words[:split_idx]
+        wordle_words = parsed_words[split_idx:]
+
+        return dict_words, wordle_words
     
     def _calc_letter_freq(self):
         word_list = self.word_list
+
+        # How often a word contains a letter (irrespective of repeat letters in word)
         letter_word_counts = {}
         for char in [chr(x) for x in range(97, 123)]:
             num_words = len([word for word in word_list if char in word])
             letter_word_counts[char] = num_words / len(word_list)
 
+        # How often letter appears in words (irrespective of repeat letters in word)
         letter_freq = Counter()
         for word in word_list:
             letter_freq.update(word)
@@ -89,6 +86,7 @@ class WordleAnalysis:
                 f"{self.letter_word_counts[letter]*100:.01f}%")
             print("Frequency of letter in all words: " 
             f"{self.letter_freq[letter]*100:.01f}%")
+
 
 
 
