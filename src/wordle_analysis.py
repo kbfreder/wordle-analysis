@@ -12,6 +12,7 @@ import os
 import sys
 import random
 from collections import Counter, OrderedDict
+import regex as re
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -160,6 +161,16 @@ class WordleAnalysis:
             print(f"{score:.04f}")
             if score_dict['label'] == 'dictionary':
                 print("Note: word is not in Wordle list.")
+    
+    def letter_pattern(self, pattern, show_words=False):
+        regex_patt = f'({pattern})'
+        matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
+        num = len(matching_words)
+        pct = num / len(self.word_list)
+        print(f"Number of words with letter pattern {num:,}")
+        print(f"Fraction of words with letter pattern {pct*100:.2f}%")
+        if show_words:
+            print(matching_words)
 
 
 def error_msg():
@@ -187,6 +198,8 @@ if __name__ == "__main__":
     random: Print 10 random number of words from word list
     letter-frequency LETTER: Show letter frequency. 
         Sumbit 'all' to show frequency for all letters. 
+    letter-pattern PATTERN [show|print]: Show statistics for words that
+        contain PATTERN. Optionally, show (print) these words.
     word-score WORD: Show word score for that word
     exit: Exit the program.
     """
@@ -209,17 +222,33 @@ if __name__ == "__main__":
         elif cmd in ["", "\n"]:
             continue
         else:
-            try:
-                arg, val = cmd.split(" ")
+            cmd_list = cmd.split(" ")
+            if len(cmd_list) == 2:
+                print("parsing cmd + arg")
+                arg, val = cmd_list
                 if arg == "letter-frequency":
                     print("Fetching letter frequency")
                     wa.show_letter_freq(val)
+                elif arg == "letter-pattern":
+                    wa.letter_pattern(val)
                 elif arg == "word-score":
                     print("Calculating word score")
                     wa.get_score_of_word(val)
-                # else: 
-                #     error_msg()
-            except ValueError:
-                # error_msg()
-                continue
+                else: 
+                    print("bad spot - 1")
+                    error_msg()
+            elif len(cmd_list) == 3:
+                print("parsing cmd + arg + opt")
+                arg, val, opt = cmd.split(" ")
+                if arg == "letter-pattern":
+                    if opt in ['SHOW', 'show', 'PRINT', 'print']:
+                        wa.letter_pattern(val, True)
+                    else:
+                        print("bad spot - 2")
+                        error_msg()
+            else:
+                print("bad spot - 3")
+                error_msg()
+        print()
+
 
