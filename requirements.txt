@@ -1,0 +1,6 @@
+regex
+scikit-learn
+keyboard
+
+# for notebooks
+pandas
