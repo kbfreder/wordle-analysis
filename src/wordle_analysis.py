@@ -59,7 +59,7 @@ class WordleAnalysis:
     def __init__(self):
         self.dict_list, self.word_list = self._load_word_list()
         self._calc_letter_freq()
-        self._calc_word_scores()
+        # self._calc_word_scores()
 
     def _load_word_list(self):
         with open(WORD_LIST_PATH, "r") as file:
@@ -96,6 +96,7 @@ class WordleAnalysis:
         self.letter_freq = letter_freq_sorted
 
     def score_word_list(self, word_list, label):
+        self._calc_word_scores()
         wf_scores = []
         lf_scores = []
         for w in word_list:
@@ -176,6 +177,15 @@ class WordleAnalysis:
         print(f"Fraction of words with letter pattern {pct*100:.2f}%")
         if show_words:
             print(matching_words)
+    
+    def cheat(self, yes_letters, no_letters):
+        matching_words = [w for w in self.word_list if 
+                          len(set(w).intersection(set(yes_letters))) 
+                          == len(yes_letters)]
+        remaining_words = [w for w in matching_words if 
+                   len(set(w).intersection(set(no_letters))) == 0]
+        print(f"Number remaining words: {len(remaining_words)}")
+        print(remaining_words)
 
 
 def error_msg():
@@ -206,6 +216,9 @@ if __name__ == "__main__":
     letter-pattern PATTERN [show|print]: Show statistics for words that
         contain PATTERN. Optionally, show (print) these words.
     word-score WORD: Show word score for that word
+    cheat YES-LETTERS NO-LETTERS: Show words that contain YES-LETTERS
+        but don't container NO-LETTERS. Does not currently take 
+        letter positions into account
     exit: Exit the program.
     """
 
@@ -229,7 +242,7 @@ if __name__ == "__main__":
         else:
             cmd_list = cmd.split(" ")
             if len(cmd_list) == 2:
-                # print("parsing cmd + arg")
+                # parse cmd + arg
                 arg, val = cmd_list
                 if arg == "letter-frequency":
                     print("Fetching letter frequency")
@@ -240,19 +253,18 @@ if __name__ == "__main__":
                     print("Calculating word score")
                     wa.get_score_of_word(val)
                 else: 
-                    # print("bad spot - 1")
                     error_msg()
             elif len(cmd_list) == 3:
-                # print("parsing cmd + arg + opt")
+                # parse cmd + arg + opt, or cmd + arg + arg
                 arg, val, opt = cmd.split(" ")
                 if arg == "letter-pattern":
                     if opt in ['SHOW', 'show', 'PRINT', 'print']:
                         wa.letter_pattern(val, True)
                     else:
-                        # print("bad spot - 2")
                         error_msg()
+                if arg == "cheat":
+                    wa.cheat(val, opt)
             else:
-                # print("bad spot - 3")
                 error_msg()
         print()
 
