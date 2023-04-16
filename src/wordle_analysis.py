@@ -5,6 +5,11 @@ Version notes:
 - v2
     - keep class / program open. Leverages user input. 
         Eliminates re-calc of word frequencies with each command
+
+TODO:
+- add better error handling (e.g. if `letter-frequency` gets passed string 
+    that isn't 'all' or a single letter)
+- detect pressing up key to repeat last command
 """
 
 import argparse
@@ -224,7 +229,7 @@ if __name__ == "__main__":
         else:
             cmd_list = cmd.split(" ")
             if len(cmd_list) == 2:
-                print("parsing cmd + arg")
+                # print("parsing cmd + arg")
                 arg, val = cmd_list
                 if arg == "letter-frequency":
                     print("Fetching letter frequency")
@@ -235,19 +240,19 @@ if __name__ == "__main__":
                     print("Calculating word score")
                     wa.get_score_of_word(val)
                 else: 
-                    print("bad spot - 1")
+                    # print("bad spot - 1")
                     error_msg()
             elif len(cmd_list) == 3:
-                print("parsing cmd + arg + opt")
+                # print("parsing cmd + arg + opt")
                 arg, val, opt = cmd.split(" ")
                 if arg == "letter-pattern":
                     if opt in ['SHOW', 'show', 'PRINT', 'print']:
                         wa.letter_pattern(val, True)
                     else:
-                        print("bad spot - 2")
+                        # print("bad spot - 2")
                         error_msg()
             else:
-                print("bad spot - 3")
+                # print("bad spot - 3")
                 error_msg()
         print()
 
