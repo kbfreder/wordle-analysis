@@ -14,7 +14,6 @@ TODO:
 
 import argparse
 import readline # not used but necessary
-import os
 import sys
 import random
 from collections import Counter, OrderedDict
@@ -176,9 +175,7 @@ class WordleAnalysis:
         regex_patt = f'({pattern})'
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
-        # pct = num / len(self.word_list)
         print(f"Number of words with letter pattern: {num:,}")
-        # print(f"Fraction of words with letter pattern {pct*100:.2f}%")
         if show_words:
             matching_words.sort()
             print(matching_words)
@@ -269,25 +266,20 @@ if __name__ == "__main__":
             cmd = entry_list[0]
             args = entry_list[1:]
             if cmd == "letter-frequency":
-                # print("Fetching letter frequency")
                 wa.show_letter_freq(args[0])
             elif cmd == "word-score":
-                # print("Calculating word score")
                 wa.get_score_of_word(args[0])
             elif cmd == "letter-pattern":
-                # print("Words with the letter pattern:")
                 if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
                     wa.letter_pattern(args[0], True)
                 else:
                     wa.letter_pattern(args[0], False)
             elif cmd == "starts-with":
-                # print("Words that start with:")
                 if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
                     wa.starts_with(args[0], True)
                 else:
                     wa.starts_with(args[0], False)
             elif cmd == "ends-with":
-                # print("Words that end with:")
                 if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
                     wa.ends_with(args[0], True)
                 else:
