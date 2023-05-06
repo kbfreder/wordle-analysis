@@ -13,7 +13,7 @@ TODO:
 """
 
 import argparse
-import readline
+import readline # not used but necessary
 import os
 import sys
 import random
@@ -59,9 +59,10 @@ class WordleAnalysis:
 
     def __init__(self):
         self.dict_list, self.word_list = self._load_word_list()
-        self._calc_letter_freq()
+        # self._calc_letter_freq()
         # self._calc_word_scores()
         self.word_score_dict = None
+        self.letter_freq = None
 
     def _load_word_list(self):
         with open(WORD_LIST_PATH, "r") as file:
@@ -97,7 +98,25 @@ class WordleAnalysis:
         self.letter_word_freq = letter_word_counts
         self.letter_freq = letter_freq_sorted
 
-    def score_word_list(self, word_list, label):
+    def _calc_word_scores(self):
+
+        wordle_df = self._score_word_list(self.word_list, 'wordle')
+        dict_df = self._score_word_list(self.dict_list, 'dictionary')
+        comb_df = pd.concat([wordle_df, dict_df], axis=0)
+        
+        mm_scaler = MinMaxScaler()
+        scaled_scores = mm_scaler.fit_transform(
+            comb_df[['word_freq_score', 'letter_freq_score']])
+
+        scaled_scores_df = pd.DataFrame(scaled_scores, 
+            columns=['word_freq_score', 'letter_freq_score'])
+        scaled_scores_df['word'] = list(comb_df['word'])
+        scaled_scores_df['label'] = list(comb_df['label'])
+
+        scaled_scores_df.set_index('word', inplace=True)
+        self.word_score_dict = scaled_scores_df.to_dict(orient='index')
+
+    def _score_word_list(self, word_list, label):
         wf_scores = []
         lf_scores = []
         for w in word_list:
@@ -119,31 +138,14 @@ class WordleAnalysis:
         word_score_df['label'] = label
         return word_score_df
 
-    def _calc_word_scores(self):
-
-        wordle_df = self.score_word_list(self.word_list, 'wordle')
-        dict_df = self.score_word_list(self.dict_list, 'dictionary')
-        comb_df = pd.concat([wordle_df, dict_df], axis=0)
-        
-        mm_scaler = MinMaxScaler()
-        scaled_scores = mm_scaler.fit_transform(
-            comb_df[['word_freq_score', 'letter_freq_score']])
-
-        scaled_scores_df = pd.DataFrame(scaled_scores, 
-            columns=['word_freq_score', 'letter_freq_score'])
-        scaled_scores_df['word'] = list(comb_df['word'])
-        scaled_scores_df['label'] = list(comb_df['label'])
-
-        scaled_scores_df.set_index('word', inplace=True)
-        self.word_score_dict = scaled_scores_df.to_dict(orient='index')
-
-
     def get_random_words(self, word_list=None, n=10):
         if word_list is None:
             word_list = self.word_list
         print(random.sample(word_list, n))
     
     def show_letter_freq(self, letter):
+        if self.letter_freq is None:
+            self._calc_letter_freq()
         if letter == "all":
             print("\n".join([f"{l}: {f:.3f}" for l,f in self.letter_freq.items()]))
         else:
@@ -174,12 +176,31 @@ class WordleAnalysis:
         regex_patt = f'({pattern})'
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
-        pct = num / len(self.word_list)
-        print(f"Number of words with letter pattern {num:,}")
-        print(f"Fraction of words with letter pattern {pct*100:.2f}%")
+        # pct = num / len(self.word_list)
+        print(f"Number of words with letter pattern: {num:,}")
+        # print(f"Fraction of words with letter pattern {pct*100:.2f}%")
         if show_words:
+            matching_words.sort()
             print(matching_words)
-    
+
+    def starts_with(self, pattern, show_words=False):
+        regex_patt = r"^" + re.escape(pattern)
+        matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
+        num = len(matching_words)
+        print(f"Number of words that start with pattern: {num:,}")
+        if show_words:
+            matching_words.sort()
+            print(matching_words)
+
+    def ends_with(self, pattern, show_words=False):
+        regex_patt = re.escape(pattern) + r"$"
+        matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
+        num = len(matching_words)
+        print(f"Number of words that end with pattern: {num:,}")
+        if show_words:
+            matching_words.sort()
+            print(matching_words)
+
     def cheat(self, yes_letters, no_letters, show=False):
         yes_letters = [x.lower() for x in yes_letters]
         no_letters = [x.lower() for x in no_letters]
@@ -191,6 +212,7 @@ class WordleAnalysis:
                    len(set(w).intersection(set(no_letters))) == 0]
         print(f"Number remaining words: {len(remaining_words)}")
         if show:
+            matching_words.sort()
             print(remaining_words)
 
 
@@ -206,11 +228,15 @@ if __name__ == "__main__":
     help_msg = """Available commands:
     help: Print list of commands
     random: Print 10 random number of words from word list
-    letter-frequency LETTER: Show letter frequency. 
-        Sumbit 'all' to show frequency for all letters. 
-    letter-pattern PATTERN [show|print]: Show statistics for words that
+    word-score WORD: Print word score for that word
+    letter-frequency LETTER: Print letter frequency of LETTER.
+        Pass 'all' to show frequency for all letters. 
+    letter-pattern PATTERN [show|print]: Print statistics for words that
         contain PATTERN. Optionally, show (print) these words.
-    word-score WORD: Show word score for that word
+    starts-with PATTERN [show|print]: Print number of words that 
+        start with PATTERN. Optionally, show (print) these words.
+    ends-with PATTERN [show|print]: Print number of words that 
+        end with PATTERN. Optionally, show (print) these words.
     cheat YES-LETTERS NO-LETTERS [show|print]: Show words that contain 
         YES-LETTERS but don't container NO-LETTERS. Does not take 
         letter positions into account. Optionally show (print)
@@ -243,17 +269,29 @@ if __name__ == "__main__":
             cmd = entry_list[0]
             args = entry_list[1:]
             if cmd == "letter-frequency":
-                print("Fetching letter frequency")
+                # print("Fetching letter frequency")
                 wa.show_letter_freq(args[0])
             elif cmd == "word-score":
-                print("Calculating word score")
+                # print("Calculating word score")
                 wa.get_score_of_word(args[0])
             elif cmd == "letter-pattern":
-                print("Words with the letter pattern:")
+                # print("Words with the letter pattern:")
                 if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
                     wa.letter_pattern(args[0], True)
                 else:
                     wa.letter_pattern(args[0], False)
+            elif cmd == "starts-with":
+                # print("Words that start with:")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.starts_with(args[0], True)
+                else:
+                    wa.starts_with(args[0], False)
+            elif cmd == "ends-with":
+                # print("Words that end with:")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.ends_with(args[0], True)
+                else:
+                    wa.ends_with(args[0], False)
             elif cmd == "cheat":
                 print("Cheater!")
                 if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
