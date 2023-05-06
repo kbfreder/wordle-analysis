@@ -240,34 +240,26 @@ if __name__ == "__main__":
             sys.exit(0)
         else:
             entry_list = entry.split(" ")
-            if len(entry_list) == 2:
-                # parse cmd + arg
-                cmd, arg = entry_list
-                if cmd == "letter-frequency":
-                    print("Fetching letter frequency")
-                    wa.show_letter_freq(arg)
-                elif cmd == "letter-pattern":
-                    wa.letter_pattern(arg)
-                elif cmd == "word-score":
-                    print("Calculating word score")
-                    wa.get_score_of_word(arg)
-                else: 
-                    error_msg()
-            elif len(entry_list) >= 3:
-                # parse cmd + args
-                cmd = entry_list[0]
-                args = entry_list[1:]
-                if cmd == "letter-pattern":
-                    if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
-                        wa.letter_pattern(args[0], True)
-                    else:
-                        wa.letter_pattern(args[0], False)
-                if cmd == "cheat":
-                    # print(args)
-                    if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
-                        wa.cheat(args[0], args[1], show=True)
-                    else:
-                        wa.cheat(args[0], args[1], show=False)
+            cmd = entry_list[0]
+            args = entry_list[1:]
+            if cmd == "letter-frequency":
+                print("Fetching letter frequency")
+                wa.show_letter_freq(args[0])
+            elif cmd == "word-score":
+                print("Calculating word score")
+                wa.get_score_of_word(args[0])
+            elif cmd == "letter-pattern":
+                print("Words with the letter pattern:")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.letter_pattern(args[0], True)
+                else:
+                    wa.letter_pattern(args[0], False)
+            elif cmd == "cheat":
+                print("Cheater!")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.cheat(args[0], args[1], show=True)
+                else:
+                    wa.cheat(args[0], args[1], show=False)
             else:
                 error_msg()
         print()
