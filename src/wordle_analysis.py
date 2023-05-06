@@ -13,6 +13,7 @@ TODO:
 """
 
 import argparse
+import readline
 import os
 import sys
 import random
@@ -60,6 +61,7 @@ class WordleAnalysis:
         self.dict_list, self.word_list = self._load_word_list()
         self._calc_letter_freq()
         # self._calc_word_scores()
+        self.word_score_dict = None
 
     def _load_word_list(self):
         with open(WORD_LIST_PATH, "r") as file:
@@ -96,7 +98,6 @@ class WordleAnalysis:
         self.letter_freq = letter_freq_sorted
 
     def score_word_list(self, word_list, label):
-        self._calc_word_scores()
         wf_scores = []
         lf_scores = []
         for w in word_list:
@@ -144,7 +145,6 @@ class WordleAnalysis:
     
     def show_letter_freq(self, letter):
         if letter == "all":
-            # print(self.letter_freq)
             print("\n".join([f"{l}: {f:.3f}" for l,f in self.letter_freq.items()]))
         else:
             print(f"Frequency of words containing letter: "
@@ -157,6 +157,8 @@ class WordleAnalysis:
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
+        if self.word_score_dict is None:
+            self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
         if score_dict is None:
             print("Word is not in dictionary.")
@@ -178,14 +180,18 @@ class WordleAnalysis:
         if show_words:
             print(matching_words)
     
-    def cheat(self, yes_letters, no_letters):
+    def cheat(self, yes_letters, no_letters, show=False):
+        yes_letters = [x.lower() for x in yes_letters]
+        no_letters = [x.lower() for x in no_letters]
+
         matching_words = [w for w in self.word_list if 
                           len(set(w).intersection(set(yes_letters))) 
                           == len(yes_letters)]
         remaining_words = [w for w in matching_words if 
                    len(set(w).intersection(set(no_letters))) == 0]
         print(f"Number remaining words: {len(remaining_words)}")
-        print(remaining_words)
+        if show:
+            print(remaining_words)
 
 
 def error_msg():
@@ -195,18 +201,7 @@ def error_msg():
 
 if __name__ == "__main__":
     wa = WordleAnalysis()
-    # args = parse_args()
     print("Welcome to Wordle Analysis")
-    # print(args)
-
-    # if args.random:
-    #     wa.get_random_words()
-    
-    # if args.letter_frequency is not None:
-    #     wa.show_letter_freq(args.letter_frequency)
-    
-    # if args.word_score is not None:
-    #     wa.get_score_of_word(args.word_score)
 
     help_msg = """Available commands:
     help: Print list of commands
@@ -216,9 +211,10 @@ if __name__ == "__main__":
     letter-pattern PATTERN [show|print]: Show statistics for words that
         contain PATTERN. Optionally, show (print) these words.
     word-score WORD: Show word score for that word
-    cheat YES-LETTERS NO-LETTERS: Show words that contain YES-LETTERS
-        but don't container NO-LETTERS. Does not currently take 
-        letter positions into account
+    cheat YES-LETTERS NO-LETTERS [show|print]: Show words that contain 
+        YES-LETTERS but don't container NO-LETTERS. Does not take 
+        letter positions into account. Optionally show (print)
+        these words.
     exit: Exit the program.
     """
 
@@ -227,43 +223,43 @@ if __name__ == "__main__":
     Type 'exit' to exit the program.
     """
     
-    cmd = ""
+    entry = ""
     print(default_msg)
-    while cmd != "exit":
-        cmd = input()
+    while True:
+        entry = input()
         
-        if cmd == "help":
+        if entry == "help":
             print(help_msg)
-        elif cmd == "random":
+        elif entry == "random":
             print("Getting random words")
             wa.get_random_words()
-        elif cmd in ["", "\n"]:
+        elif entry in ["", "\n"]:
             continue
+        elif entry in ["exit", "EXIT", "quit", "QUIT"]:
+            print("Goodbye")
+            sys.exit(0)
         else:
-            cmd_list = cmd.split(" ")
-            if len(cmd_list) == 2:
-                # parse cmd + arg
-                arg, val = cmd_list
-                if arg == "letter-frequency":
-                    print("Fetching letter frequency")
-                    wa.show_letter_freq(val)
-                elif arg == "letter-pattern":
-                    wa.letter_pattern(val)
-                elif arg == "word-score":
-                    print("Calculating word score")
-                    wa.get_score_of_word(val)
-                else: 
-                    error_msg()
-            elif len(cmd_list) == 3:
-                # parse cmd + arg + opt, or cmd + arg + arg
-                arg, val, opt = cmd.split(" ")
-                if arg == "letter-pattern":
-                    if opt in ['SHOW', 'show', 'PRINT', 'print']:
-                        wa.letter_pattern(val, True)
-                    else:
-                        error_msg()
-                if arg == "cheat":
-                    wa.cheat(val, opt)
+            entry_list = entry.split(" ")
+            cmd = entry_list[0]
+            args = entry_list[1:]
+            if cmd == "letter-frequency":
+                print("Fetching letter frequency")
+                wa.show_letter_freq(args[0])
+            elif cmd == "word-score":
+                print("Calculating word score")
+                wa.get_score_of_word(args[0])
+            elif cmd == "letter-pattern":
+                print("Words with the letter pattern:")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.letter_pattern(args[0], True)
+                else:
+                    wa.letter_pattern(args[0], False)
+            elif cmd == "cheat":
+                print("Cheater!")
+                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+                    wa.cheat(args[0], args[1], show=True)
+                else:
+                    wa.cheat(args[0], args[1], show=False)
             else:
                 error_msg()
         print()
