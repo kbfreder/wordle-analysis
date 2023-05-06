@@ -7,9 +7,15 @@ Version notes:
         Eliminates re-calc of word frequencies with each command
 
 TODO:
+- create a "setup script" that computes
+    - word lists (split between "dictionary" and "wordle" words)
+    - letter frequencies
+    - word scores (?)
+    --> then, here, we just load them
+- allow addition of word to wordle list (and remember them!)
+    - probably in this setup script
 - add better error handling (e.g. if `letter-frequency` gets passed string 
     that isn't 'all' or a single letter)
-- detect pressing up key to repeat last command
 """
 
 import argparse
@@ -116,6 +122,8 @@ class WordleAnalysis:
         self.word_score_dict = scaled_scores_df.to_dict(orient='index')
 
     def _score_word_list(self, word_list, label):
+        if self.letter_freq is None:
+            self._calc_letter_freq()
         wf_scores = []
         lf_scores = []
         for w in word_list:
