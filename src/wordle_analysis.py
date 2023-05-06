@@ -60,6 +60,7 @@ class WordleAnalysis:
         self.dict_list, self.word_list = self._load_word_list()
         self._calc_letter_freq()
         # self._calc_word_scores()
+        self.word_score_dict = None
 
     def _load_word_list(self):
         with open(WORD_LIST_PATH, "r") as file:
@@ -96,7 +97,6 @@ class WordleAnalysis:
         self.letter_freq = letter_freq_sorted
 
     def score_word_list(self, word_list, label):
-        self._calc_word_scores()
         wf_scores = []
         lf_scores = []
         for w in word_list:
@@ -157,6 +157,8 @@ class WordleAnalysis:
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
+        if self.word_score_dict is None:
+            self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
         if score_dict is None:
             print("Word is not in dictionary.")
