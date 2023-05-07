@@ -219,34 +219,31 @@ class WordleAnalysis:
         green (str): pattern of green letters, using '-' to denote
             non-green positions. Ex: -a-e-
             Enter a blank string if no green letters known.
-        yellow (str): yellow letters. Letters that are known to be in 
-            the word, but for which the position is not known. Ex: tl.
-            Enter a blank string if no yellow letters known.
-            Note: currently does not take into account the negative
-            positional information known about yellow letters (e.g. t is
-            not in the 2nd position)
+        yellow (list[str]): yellow letter patterns. Letters that are known to 
+            be in the word, but for which exact position is not known. 
+            Ex: [---l-, ----t] or [-e-e-]
+            Enter an empty string if no yellow letters known.
         gray (str): gray letters. Letters that are known to not be in 
             the word. Ex: pos
         show (bool): Whether to return the list of words.
 
         returns: None
         """
-        # combine green & gray into a regex pattern
         regex_patt = r""
-        for char in green:
+        for i, char in enumerate(green):
+            no_chars = gray[:]
             if char == "-":
-                regex_patt += r"[^" + re.escape(gray) + r"]"
+                for ylist in yellow:
+                    if ylist[i] != '-':
+                        no_chars += ylist[i]
+                regex_patt += r"[^" + re.escape(no_chars) + r"]"
             else:
                 regex_patt += re.escape(char)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
-        
-        # then apply yellow letters (non-positional) info
-        remaining_words = [w for w in matching_words if 
-                           re.search(re.escape(yellow), w) is not None]
-        print(f"Number remaining words: {len(remaining_words)}")
+        print(f"Number remaining words: {len(matching_words)}")
         if show:
-            remaining_words.sort()
-            print(remaining_words)
+            matching_words.sort()
+            print(matching_words)
 
 
 def error_msg():
@@ -270,15 +267,23 @@ if __name__ == "__main__":
         start with PATTERN. Optionally, show (print) these words.
     ends-with PATTERN [show|print]: Print number of words that 
         end with PATTERN. Optionally, show (print) these words.
-    cheat GREEN-PATTERN YELLOW-LETTERS GRAY-LETTERS [show|print]: 
-        Show words that match GREEN-PATTERN (using '-' to denote non-
-        green positions, ex: -a-e-), contain YELLOW-LETTERS but don't 
-        containe GRAY-LETTERS. Does not currently take yellow letter 
-        positions into account. Optionally show (print) these words.
-        Enter a blank space for GREEN or YELLOW if there are none (e.g. 
-        type 'cheat  tr lsne' for no green, 'tr' yellow, and 'lsne' grey,
-        or `cheat --e--  chat for 'e' green in third posision, no yellow, and
-        'chat' grey)
+    cheat green GREEN-PATTERN yellow YELLOW-PATTERN1,YELLOW-PATTERN2,...
+        gray GRAY-LETTERS [show|print]: 
+        Show words that match GREEN-PATTERN, match YELLOW-PATTERNS but don't 
+        containe GRAY-LETTERS. Ex: `cheat green t-e-- yellow -r--- gray posad`
+        For GREEN and YELLOW patterns, use '-' to denote non-color positions,
+        ex: -a-e-. For GREEN, enter the position you know the letter(s) to be
+        in. For YELLOW, enter the positions you know the letter(s) to not be in.
+        Use a comma to separate pattners, *but no space*.
+        Enter one pattern string for each yellow letter. e.g. if your first guess 
+        was STYLE, and the Y was green, and L and the E were yellow, you would enter:
+        'cheat green --Y-- yellow ---L-,----E grey ST'
+        Enter a blank space if there are no lettes for that color (e.g. 
+        type 'cheat green yellow ----t -r--- gea' for no green, 'tr' yellow, and 'gea' grey,
+        or `cheat green --e-- yellow  gray chat for 'e' green in third posision, no yellow, 
+        and 'chat' grey)
+        Optionally show (print) these words.
+        
     exit: Exit the program.
     """
 
@@ -327,10 +332,21 @@ if __name__ == "__main__":
                     wa.ends_with(args[0], False)
             elif cmd == "cheat":
                 print("Cheater!")
-                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
-                    wa.cheat(args[0], args[1], args[2], show=True)
-                else:
-                    wa.cheat(args[0], args[1], args[2], show=False)
+                show =  False
+                green = "-----"
+                yellow = []
+                gray = ""
+                for i, arg in enumerate(args):
+                    if arg == "green":
+                        green = args[i+1]
+                    if arg == "yellow":
+                        yellow = args[i+1].split(',')
+                    if (arg == "gray") or (arg == "grey"):
+                        gray = args[i+1]
+                    if arg in ['SHOW', 'show', 'PRINT', 'print']:
+                        show = True
+
+                wa.cheat(green, yellow, gray, show)
             else:
                 error_msg()
         print()
