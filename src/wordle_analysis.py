@@ -7,9 +7,15 @@ Version notes:
         Eliminates re-calc of word frequencies with each command
 
 TODO:
+- create a "setup script" that computes
+    - word lists (split between "dictionary" and "wordle" words)
+    - letter frequencies
+    - word scores (?)
+    --> then, here, we just load them
+- allow addition of word to wordle list (and remember them!)
+    - probably in this setup script
 - add better error handling (e.g. if `letter-frequency` gets passed string 
     that isn't 'all' or a single letter)
-- detect pressing up key to repeat last command
 """
 
 import argparse
@@ -58,8 +64,6 @@ class WordleAnalysis:
 
     def __init__(self):
         self.dict_list, self.word_list = self._load_word_list()
-        # self._calc_letter_freq()
-        # self._calc_word_scores()
         self.word_score_dict = None
         self.letter_freq = None
 
@@ -98,7 +102,6 @@ class WordleAnalysis:
         self.letter_freq = letter_freq_sorted
 
     def _calc_word_scores(self):
-
         wordle_df = self._score_word_list(self.word_list, 'wordle')
         dict_df = self._score_word_list(self.dict_list, 'dictionary')
         comb_df = pd.concat([wordle_df, dict_df], axis=0)
@@ -116,6 +119,8 @@ class WordleAnalysis:
         self.word_score_dict = scaled_scores_df.to_dict(orient='index')
 
     def _score_word_list(self, word_list, label):
+        if self.letter_freq is None:
+            self._calc_letter_freq()
         wf_scores = []
         lf_scores = []
         for w in word_list:
@@ -142,22 +147,26 @@ class WordleAnalysis:
             word_list = self.word_list
         print(random.sample(word_list, n))
     
-    def show_letter_freq(self, letter):
+    def get_letter_freq(self, letter):
+        letter = letter.lower()
         if self.letter_freq is None:
             self._calc_letter_freq()
         if letter == "all":
             print("\n".join([f"{l}: {f:.3f}" for l,f in self.letter_freq.items()]))
-        else:
+        elif letter in self.letter_freq.keys():
             print(f"Frequency of words containing letter: "
                 f"{self.letter_word_freq[letter]*100:.01f}%")
             print("Frequency of letter in all words: " 
             f"{self.letter_freq[letter]*100:.01f}%")
             print()
+        else:
+            print(f"Letter not found in dictionary: {letter}")
 
     def get_score_of_word(self, word):
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
+        word = word.lower()
         if self.word_score_dict is None:
             self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
@@ -172,7 +181,8 @@ class WordleAnalysis:
                 print("Note: word is not in Wordle list.")
     
     def letter_pattern(self, pattern, show_words=False):
-        regex_patt = f'({pattern})'
+        pattern = pattern.lower()
+        regex_patt = re.escape(pattern) 
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
         print(f"Number of words with letter pattern: {num:,}")
@@ -181,6 +191,7 @@ class WordleAnalysis:
             print(matching_words)
 
     def starts_with(self, pattern, show_words=False):
+        pattern = pattern.lower()
         regex_patt = r"^" + re.escape(pattern)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -190,6 +201,7 @@ class WordleAnalysis:
             print(matching_words)
 
     def ends_with(self, pattern, show_words=False):
+        pattern = pattern.lower()
         regex_patt = re.escape(pattern) + r"$"
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -198,19 +210,40 @@ class WordleAnalysis:
             matching_words.sort()
             print(matching_words)
 
-    def cheat(self, yes_letters, no_letters, show=False):
-        yes_letters = [x.lower() for x in yes_letters]
-        no_letters = [x.lower() for x in no_letters]
+    def cheat(self, green, yellow, gray, show=False):
+        """
+        Prints number, and optionally the list, of words matching supplied patterns.
 
-        matching_words = [w for w in self.word_list if 
-                          len(set(w).intersection(set(yes_letters))) 
-                          == len(yes_letters)]
-        remaining_words = [w for w in matching_words if 
-                   len(set(w).intersection(set(no_letters))) == 0]
-        print(f"Number remaining words: {len(remaining_words)}")
+        params:
+        --------
+        green (str): pattern of green letters, using '-' to denote
+            non-green positions. Ex: -a-e-
+            Enter a blank string if no green letters known.
+        yellow (list[str]): yellow letter patterns. Letters that are known to 
+            be in the word, but for which exact position is not known. 
+            Ex: [---l-, ----t] or [-e-e-]
+            Enter an empty string if no yellow letters known.
+        gray (str): gray letters. Letters that are known to not be in 
+            the word. Ex: pos
+        show (bool): Whether to return the list of words.
+
+        returns: None
+        """
+        regex_patt = r""
+        for i, char in enumerate(green):
+            no_chars = gray[:]
+            if char == "-":
+                for ylist in yellow:
+                    if ylist[i] != '-':
+                        no_chars += ylist[i]
+                regex_patt += r"[^" + re.escape(no_chars) + r"]"
+            else:
+                regex_patt += re.escape(char)
+        matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
+        print(f"Number remaining words: {len(matching_words)}")
         if show:
             matching_words.sort()
-            print(remaining_words)
+            print(matching_words)
 
 
 def error_msg():
@@ -234,10 +267,23 @@ if __name__ == "__main__":
         start with PATTERN. Optionally, show (print) these words.
     ends-with PATTERN [show|print]: Print number of words that 
         end with PATTERN. Optionally, show (print) these words.
-    cheat YES-LETTERS NO-LETTERS [show|print]: Show words that contain 
-        YES-LETTERS but don't container NO-LETTERS. Does not take 
-        letter positions into account. Optionally show (print)
-        these words.
+    cheat green GREEN-PATTERN yellow YELLOW-PATTERN1,YELLOW-PATTERN2,...
+        gray GRAY-LETTERS [show|print]: 
+        Show words that match GREEN-PATTERN, match YELLOW-PATTERNS but don't 
+        containe GRAY-LETTERS. Ex: `cheat green t-e-- yellow -r--- gray posad`
+        For GREEN and YELLOW patterns, use '-' to denote non-color positions,
+        ex: -a-e-. For GREEN, enter the position you know the letter(s) to be
+        in. For YELLOW, enter the positions you know the letter(s) to not be in.
+        Use a comma to separate pattners, *but no space*.
+        Enter one pattern string for each yellow letter. e.g. if your first guess 
+        was STYLE, and the Y was green, and L and the E were yellow, you would enter:
+        'cheat green --Y-- yellow ---L-,----E grey ST'
+        Enter a blank space if there are no lettes for that color (e.g. 
+        type 'cheat green yellow ----t -r--- gea' for no green, 'tr' yellow, and 'gea' grey,
+        or `cheat green --e-- yellow  gray chat for 'e' green in third posision, no yellow, 
+        and 'chat' grey)
+        Optionally show (print) these words.
+        
     exit: Exit the program.
     """
 
@@ -266,7 +312,7 @@ if __name__ == "__main__":
             cmd = entry_list[0]
             args = entry_list[1:]
             if cmd == "letter-frequency":
-                wa.show_letter_freq(args[0])
+                wa.get_letter_freq(args[0])
             elif cmd == "word-score":
                 wa.get_score_of_word(args[0])
             elif cmd == "letter-pattern":
@@ -286,12 +332,21 @@ if __name__ == "__main__":
                     wa.ends_with(args[0], False)
             elif cmd == "cheat":
                 print("Cheater!")
-                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
-                    wa.cheat(args[0], args[1], show=True)
-                else:
-                    wa.cheat(args[0], args[1], show=False)
+                show =  False
+                green = "-----"
+                yellow = []
+                gray = ""
+                for i, arg in enumerate(args):
+                    if arg == "green":
+                        green = args[i+1]
+                    if arg == "yellow":
+                        yellow = args[i+1].split(',')
+                    if (arg == "gray") or (arg == "grey"):
+                        gray = args[i+1]
+                    if arg in ['SHOW', 'show', 'PRINT', 'print']:
+                        show = True
+
+                wa.cheat(green, yellow, gray, show)
             else:
                 error_msg()
         print()
-
-
