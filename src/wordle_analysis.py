@@ -64,8 +64,6 @@ class WordleAnalysis:
 
     def __init__(self):
         self.dict_list, self.word_list = self._load_word_list()
-        # self._calc_letter_freq()
-        # self._calc_word_scores()
         self.word_score_dict = None
         self.letter_freq = None
 
@@ -149,18 +147,20 @@ class WordleAnalysis:
             word_list = self.word_list
         print(random.sample(word_list, n))
     
-    def show_letter_freq(self, letter):
+    def get_letter_freq(self, letter):
         letter = letter.lower()
         if self.letter_freq is None:
             self._calc_letter_freq()
         if letter == "all":
             print("\n".join([f"{l}: {f:.3f}" for l,f in self.letter_freq.items()]))
-        else:
+        elif letter in self.letter_freq.keys():
             print(f"Frequency of words containing letter: "
                 f"{self.letter_word_freq[letter]*100:.01f}%")
             print("Frequency of letter in all words: " 
             f"{self.letter_freq[letter]*100:.01f}%")
             print()
+        else:
+            print(f"Letter not found in dictionary: {letter}")
 
     def get_score_of_word(self, word):
         """Get word "score", based on letter frequencies
@@ -312,7 +312,7 @@ if __name__ == "__main__":
             cmd = entry_list[0]
             args = entry_list[1:]
             if cmd == "letter-frequency":
-                wa.show_letter_freq(args[0])
+                wa.get_letter_freq(args[0])
             elif cmd == "word-score":
                 wa.get_score_of_word(args[0])
             elif cmd == "letter-pattern":
@@ -350,5 +350,3 @@ if __name__ == "__main__":
             else:
                 error_msg()
         print()
-
-
