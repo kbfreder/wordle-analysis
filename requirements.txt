@@ -1,6 +1,8 @@
 regex
 scikit-learn
-keyboard
+opencv-python
+pytesseract
 
 # for notebooks
 pandas
+matplotlib
