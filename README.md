@@ -47,6 +47,21 @@ FUTURE FUTURE FEATURES
     exit: Exit the program.
     ```
 
+## Environment set-up
+
+On MacOS
+- `brew install tesseract`
+    - note the tesseract directory using: `brew info tesseract` 
+      (should be ~4th line)
+      - you will need append /bin/tesseract
+      e.g.: TESSERACT_PATH = "/usr/local/Cellar/tesseract/5.3.1/bin/tesseract"
+      - you may `chown` some folders
+- create a  `.env` file at the root of this project, and paste:
+    `export TESSERACT_PATH=<path from above>`
+    - Note that we use this env var as follows:
+    `pytesseract.pytesseract.tesseract_cmd=TESSERACT_PATH`
+- create virtual environment and install packages in `requirements.txt`
+
 ## Development notes
 
 ### word list inputs
