@@ -23,6 +23,7 @@ import readline # not used but necessary
 import sys
 import random
 from collections import Counter, OrderedDict
+from itertools import chain
 import regex as re
 import pandas as pd
 import numpy as np
@@ -148,7 +149,7 @@ class WordleAnalysis:
         print(random.sample(word_list, n))
     
     def get_letter_freq(self, letter):
-        letter = letter.lower()
+        # letter = letter.lower()
         if self.letter_freq is None:
             self._calc_letter_freq()
         if letter == "all":
@@ -166,7 +167,7 @@ class WordleAnalysis:
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
-        word = word.lower()
+        # word = word.lower()
         if self.word_score_dict is None:
             self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
@@ -181,7 +182,7 @@ class WordleAnalysis:
                 print("Note: word is not in Wordle list.")
     
     def letter_pattern(self, pattern, show_words=False):
-        pattern = pattern.lower()
+        # pattern = pattern.lower()
         regex_patt = re.escape(pattern) 
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -191,7 +192,7 @@ class WordleAnalysis:
             print(matching_words)
 
     def starts_with(self, pattern, show_words=False):
-        pattern = pattern.lower()
+        # pattern = pattern.lower()
         regex_patt = r"^" + re.escape(pattern)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -201,7 +202,7 @@ class WordleAnalysis:
             print(matching_words)
 
     def ends_with(self, pattern, show_words=False):
-        pattern = pattern.lower()
+        # pattern = pattern.lower()
         regex_patt = re.escape(pattern) + r"$"
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -240,10 +241,20 @@ class WordleAnalysis:
             else:
                 regex_patt += re.escape(char)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
-        print(f"Number remaining words: {len(matching_words)}")
+
+        nested_y_lett = [list(set(ylist)) for ylist in yellow]
+        messy_y_lett = list(chain.from_iterable(nested_y_lett))
+        yellow_letters = [y for y in messy_y_lett if y != '-']
+
+        remaining_words = matching_words[:]
+        for y in yellow_letters:
+            remaining_words = [w for w in remaining_words if y in w]
+        len(remaining_words)
+
+        print(f"Number matching words: {len(remaining_words)}")
         if show:
-            matching_words.sort()
-            print(matching_words)
+            remaining_words.sort()
+            print(remaining_words)
 
 
 def error_msg():
@@ -267,21 +278,19 @@ if __name__ == "__main__":
         start with PATTERN. Optionally, show (print) these words.
     ends-with PATTERN [show|print]: Print number of words that 
         end with PATTERN. Optionally, show (print) these words.
-    cheat green GREEN-PATTERN yellow YELLOW-PATTERN1,YELLOW-PATTERN2,...
+    cheat green GREEN-PATTERN yellow YELLOW-ANTIPATTERN1,YELLOW-ANTIPATTERN2,...
         gray GRAY-LETTERS [show|print]: 
-        Show words that match GREEN-PATTERN, match YELLOW-PATTERNS but don't 
-        containe GRAY-LETTERS. Ex: `cheat green t-e-- yellow -r--- gray posad`
-        For GREEN and YELLOW patterns, use '-' to denote non-color positions,
-        ex: -a-e-. For GREEN, enter the position you know the letter(s) to be
-        in. For YELLOW, enter the positions you know the letter(s) to not be in.
-        Use a comma to separate pattners, *but no space*.
-        Enter one pattern string for each yellow letter. e.g. if your first guess 
-        was STYLE, and the Y was green, and L and the E were yellow, you would enter:
-        'cheat green --Y-- yellow ---L-,----E grey ST'
-        Enter a blank space if there are no lettes for that color (e.g. 
-        type 'cheat green yellow ----t -r--- gea' for no green, 'tr' yellow, and 'gea' grey,
-        or `cheat green --e-- yellow  gray chat for 'e' green in third posision, no yellow, 
-        and 'chat' grey)
+        Show words that match GREEN-PATTERN, match the YELLOW-ANTIPATTERNS but don't 
+        contain GRAY-LETTERS. Ex: `cheat green t-e-- yellow -rr-- gray posad` means
+        T in the first position, E in the third, R is in the word but not the second
+        or third positions, and ADOPS are not in the word.
+        For GREEN and YELLOW patterns, use '-' to denote non-color positions.
+        For GREEN, enter the position you know the letter(s) to be in. 
+        For YELLOW, enter the positions you know the letter(s) to *not* be in.
+            Enter one anti-pattern string for each yellow letter. Use a comma to 
+            separate letter pattners, *but no space*.
+            e.g. if your first guess was STYLE, and L and the E were yellow, you 
+            would enter: 'cheat yellow ---L-,----E grey STY'.
         Optionally show (print) these words.
         
     exit: Exit the program.
@@ -296,7 +305,8 @@ if __name__ == "__main__":
     print(default_msg)
     while True:
         entry = input()
-        
+        entry = entry.lower()
+
         if entry == "help":
             print(help_msg)
         elif entry == "random":
