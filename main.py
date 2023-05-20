@@ -4,10 +4,11 @@ from flask import Flask, render_template, request, redirect
 from werkzeug.utils import secure_filename
 
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-# app.config['IMAGE_UPLOADS'] = 'static/images/'
-app.config['IMAGE_UPLOADS'] = "/Users/kendra/Code/wordle-analysis/static/images"
+app.config['IMAGE_UPLOADS'] = 'static/images/'
+
 
 @app.route("/home", methods=['GET', 'POST'])
 def upload_image():
@@ -19,7 +20,6 @@ def upload_image():
             redirect(request.url)
 
         filename = secure_filename(image.filename)
-        BASE_DIR = os.path.abspath(os.path.dirname(__file__))
         img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
         image.save(img_path)
         return render_template("main.html", filename=filename)
