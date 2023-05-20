@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+<title>Kendrabot - Wordle Helper</title>
+
+<h2>Upload a screen shot</h2>
+
+<!-- <div>
+    <img src="../static/images/gray-knock.png">
+</div> -->
+
+{% if filename %}
+    <div>
+        <img src="{{ url_for('static', filename='/images/'+filename) }}" style="width:260px;height:300px;">
+    </div>
+{% endif %}
+
+
+
+<form method="post" action="/home" enctype="multipart/form-data">
+    <p>
+        <input type="file" name="file" autocomplete="off" required>
+    </p>
+    <p>
+        <input type="submit" value="Submit">
+    </p>
+</form>
