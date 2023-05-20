@@ -3,6 +3,9 @@ import os
 from flask import Flask, render_template, request, redirect
 from werkzeug.utils import secure_filename
 
+from src.cv import ScreenShotAnalysis
+
+cv = ScreenShotAnalysis()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,6 +25,8 @@ def upload_image():
         filename = secure_filename(image.filename)
         img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
         image.save(img_path)
+        # cv.test(img_path)
+        cv.process(img_path)
         return render_template("main.html", filename=filename)
 
     return render_template("main.html")
