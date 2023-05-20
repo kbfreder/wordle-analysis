@@ -4,14 +4,17 @@ import numpy as np
 from collections import defaultdict
 
 import pytesseract
-
 TESSERACT_PATH = "/usr/local/Cellar/tesseract/5.3.1/bin/tesseract"
 pytesseract.pytesseract.tesseract_cmd=TESSERACT_PATH
+
+from .wordle_analysis import WordleAnalysis
+
 
 TILE_PCT_AREA_CUTOFF = 0.02 # this was derived empirically
 
 class ScreenShotAnalysis:
     def __init__(self):
+        self.wa = WordleAnalysis()
         pass
 
     def load_image(self, img_path):
@@ -23,9 +26,15 @@ class ScreenShotAnalysis:
         img = self.load_image(img_path)
         print(img.shape)
 
+    def correct_letter(self, letter):
+        correction_dict = {
+            '|': "I",
+            '0': "O"
+        }
+        return correction_dict.get(letter, letter)
+
     def process(self, img_path):
         img = self.load_image(img_path)
-        print(img.shape)
         img_area = img.shape[0] * img.shape[1]
         img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img_gray_inv = cv2.bitwise_not(img_gray)
@@ -40,14 +49,14 @@ class ScreenShotAnalysis:
             area = cv2.contourArea(c)
             if (area > square_area_thresh) & (len(c) == 4):
                 square_contours.append(c)
-
-        # Note: coordinates of a given contour are:
-        # - upper L: y,x
-        # - upper R: y,x
-        # - lower R: y,x
-        # - lower L: y,x
+        print(f"Num tiles detected: {len(square_contours)}")
 
         # Order the square contours by row, column
+            # Note: coordinates of a given contour are:
+            # - upper L: y,x
+            # - upper R: y,x
+            # - lower R: y,x
+            # - lower L: y,x
         square_contours.sort(key=lambda coord: (coord[0][0][1], coord[0][0][0]))
 
         # get color masks
@@ -66,9 +75,9 @@ class ScreenShotAnalysis:
         img_gray_mask = cv2.bitwise_and(img, img, mask=bool_mask_gray)
 
         color_mask_dict = {
-            'green': img_green_mask,
-            'yellow': img_yellow_mask,
-            'gray': img_gray_mask 
+            2: img_green_mask,
+            1: img_yellow_mask,
+            0: img_gray_mask 
         }
 
         letters = []
@@ -90,12 +99,17 @@ class ScreenShotAnalysis:
             # invert B&W so letter is in black, background in white
             mimg_bw_inv = cv2.bitwise_not(mimg_bw)
             # now, tesseract should work
-            letters.append(pytesseract.image_to_string(mimg_bw_inv, lang="eng", config="--psm 7").strip())
-            
+            ## though we only take the first character, JIC
+            letter_detected = pytesseract.image_to_string(mimg_bw_inv, lang="eng", config="--psm 7").strip()[0]
+
+            letters.append(
+                self.correct_letter(letter_detected)
+            )
+
             # check for overlap with the color masks
-            for color, img_color_mask in color_mask_dict.items():
+            for color_code, img_color_mask in color_mask_dict.items():
                 if np.max(cv2.bitwise_and(img_color_mask, masked_img)) > 0:
-                    letter_colors.append(color)
+                    letter_colors.append(color_code)
 
         # split into rows
         n = 5
@@ -105,9 +119,15 @@ class ScreenShotAnalysis:
             row_letters.append(letters[i: i+n])
             row_colors.append(letter_colors[i: i+n])
 
-        num_rows = len(row_letters)
-        rows = [list(zip(row_letters[r], row_colors[r])) for r in range(num_rows)]
-        return rows
+        print("Detected letters & color codes:")
+        print(row_letters)
+        print(row_colors)
+        result = self.wa.new_cheat(row_letters, row_colors)
+        return result
+
+        # num_rows = len(row_letters)
+        # rows = [list(zip(row_letters[r], row_colors[r])) for r in range(num_rows)]
+        # return rows
 
         # # iterate over rows and convert separate letter / color lists
         # # to input for "cheat" function

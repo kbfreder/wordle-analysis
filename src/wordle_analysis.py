@@ -18,6 +18,7 @@ TODO:
     that isn't 'all' or a single letter)
 """
 
+import os
 import argparse
 import readline # not used but necessary
 import sys
@@ -35,7 +36,9 @@ ABOUT = """
     and letter combinations found in the Wordle word list.
     Only one command can be run at a time
     """
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 WORD_LIST_PATH = "../input/nyt_wordle_list.txt"
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description=ABOUT)
@@ -69,14 +72,15 @@ class WordleAnalysis:
         self.letter_freq = None
 
     def _load_word_list(self):
-        with open(WORD_LIST_PATH, "r") as file:
+        word_list_path = os.path.join(BASE_DIR, WORD_LIST_PATH)
+        with open(word_list_path, "r") as file:
             raw_words = file.readline()
         
         raw_words = raw_words.split(',')
-        parsed_words = [w.strip('"') for w in raw_words]
+        parsed_words = [w.strip('"').upper() for w in raw_words]
         
         # this is a guess as to what the first & second parts of the list represent
-        split_idx = parsed_words.index('cigar')
+        split_idx = parsed_words.index('CIGAR')
         dict_words = parsed_words[:split_idx]
         wordle_words = parsed_words[split_idx:]
 
@@ -256,6 +260,57 @@ class WordleAnalysis:
             remaining_words.sort()
             print(remaining_words)
 
+    def new_cheat(self, list_of_guesses, list_of_patterns, print_words=False):
+        """Given guesses and resulting patterns, returns number of remaining words,
+        and optionally, those words.
+        
+        list_of_guesses: list of words guessed
+            Ex: ['POETS', 'TREAD'] or [['P','O','E','T','S']]
+        lift_of_patterns: list of match patterns
+            0 for gray, 1 for yellow, 2 for green
+            Ex: [[0,0,2,1,0], [2,1,2,0,0]]
+        """
+        num_rows = len(list_of_guesses)
+        rows = [list(zip(list_of_guesses[r], list_of_patterns[r])) for r in range(num_rows)]
+        
+        matching_words = self.word_list[:]
+        for row in rows:
+            # first pass: get gray & yellow letters
+            gray_letters = []
+            yellow_letters = []
+            for i, (c, m) in enumerate(row):
+                if m == 0:
+                    gray_letters.append(c)
+                elif m == 1:
+                    yellow_letters.append(c)
+
+            # second pass, derive green+gray regex    
+            green_gray_regex = r""
+            for i, (c, m) in enumerate(row):
+                if m == 2:
+                    green_gray_regex += re.escape(c)
+                else:
+                    no_chars = ''.join(gray_letters)
+                    if m == 1:
+                        # add yellow letter
+                        no_chars += c
+                    green_gray_regex += r"[^" + re.escape(no_chars) + r"]"
+
+
+            # do initial regex select
+            matching_words = [w for w in matching_words 
+                            if re.search(green_gray_regex, w) is not None]
+            
+            # apply yellow letter constraints
+            for y in yellow_letters:
+                matching_words = [w for w in matching_words if y in w]
+        
+        print(f"Number matching words: {len(matching_words)}")
+        if print_words:
+            print(matching_words)
+            return matching_words
+        else:
+            return len(matching_words)
 
 def error_msg():
     print("Command not recognized. Please try again.")
