@@ -2,6 +2,7 @@ regex
 scikit-learn
 opencv-python
 pytesseract
+flask
 
 # for notebooks
 pandas

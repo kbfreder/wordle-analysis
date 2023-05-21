@@ -49,4 +49,4 @@ def analyze_image():
     return render_template("main.html", filename=filename, text=text)
 
 
-app.run(port=5000, debug=True)
+app.run(port=5000)

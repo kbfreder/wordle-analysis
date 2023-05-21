@@ -40,28 +40,6 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 WORD_LIST_PATH = "../input/nyt_wordle_list.txt"
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description=ABOUT)
-    parser.add_argument(
-        "--random",
-        help="Print 10 random number of words from word list.",
-        action="store_true",
-        required=False,
-    )
-    parser.add_argument(
-        "--letter-frequency",
-        help="Show letter frequency. Sumbit 'all' to show frequency "
-        "for all letters. Submit a letter to see frequency for that "
-        "letter.",
-    )
-    parser.add_argument(
-        "--word-score",
-        help="Show 'score' for a word, based on letter frequencies.",
-    )
-    args = parser.parse_args()
-    return args
-
-
 class WordleAnalysis:
     """
     """
@@ -316,6 +294,7 @@ def error_msg():
     print("Command not recognized. Please try again.")
     print(help_msg)
     print()
+
 
 if __name__ == "__main__":
     wa = WordleAnalysis()
