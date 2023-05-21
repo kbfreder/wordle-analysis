@@ -131,7 +131,6 @@ class WordleAnalysis:
         print(random.sample(word_list, n))
     
     def get_letter_freq(self, letter):
-        # letter = letter.lower()
         if self.letter_freq is None:
             self._calc_letter_freq()
         if letter == "all":
@@ -149,7 +148,6 @@ class WordleAnalysis:
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
-        # word = word.lower()
         if self.word_score_dict is None:
             self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
@@ -164,7 +162,6 @@ class WordleAnalysis:
                 print("Note: word is not in Wordle list.")
     
     def letter_pattern(self, pattern, show_words=False):
-        # pattern = pattern.lower()
         regex_patt = re.escape(pattern) 
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -174,7 +171,6 @@ class WordleAnalysis:
             print(matching_words)
 
     def starts_with(self, pattern, show_words=False):
-        # pattern = pattern.lower()
         regex_patt = r"^" + re.escape(pattern)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -184,7 +180,6 @@ class WordleAnalysis:
             print(matching_words)
 
     def ends_with(self, pattern, show_words=False):
-        # pattern = pattern.lower()
         regex_patt = re.escape(pattern) + r"$"
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -339,55 +334,55 @@ if __name__ == "__main__":
     print(default_msg)
     while True:
         entry = input()
-        entry = entry.lower()
+        entry = entry.upper()
 
-        if entry == "help":
+        if entry == "HELP":
             print(help_msg)
-        elif entry == "random":
+        elif entry == "RANDOM":
             print("Getting random words")
             wa.get_random_words()
         elif entry in ["", "\n"]:
             continue
-        elif entry in ["exit", "EXIT", "quit", "QUIT"]:
+        elif entry in ["EXIT", "QUIT"]:
             print("Goodbye")
             sys.exit(0)
         else:
             entry_list = entry.split(" ")
             cmd = entry_list[0]
             args = entry_list[1:]
-            if cmd == "letter-frequency":
+            if cmd == "letter-frequency".upper():
                 wa.get_letter_freq(args[0])
             elif cmd == "word-score":
                 wa.get_score_of_word(args[0])
-            elif cmd == "letter-pattern":
-                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+            elif cmd == "letter-pattern".upper():
+                if args[-1] in ['SHOW', 'PRINT',]:
                     wa.letter_pattern(args[0], True)
                 else:
                     wa.letter_pattern(args[0], False)
-            elif cmd == "starts-with":
-                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+            elif cmd == "starts-with".upper():
+                if args[-1] in ['SHOW', 'PRINT']:
                     wa.starts_with(args[0], True)
                 else:
                     wa.starts_with(args[0], False)
-            elif cmd == "ends-with":
-                if args[-1] in ['SHOW', 'show', 'PRINT', 'print']:
+            elif cmd == "ends-with".upper():
+                if args[-1] in ['SHOW', 'PRINT']:
                     wa.ends_with(args[0], True)
                 else:
                     wa.ends_with(args[0], False)
-            elif cmd == "cheat":
+            elif cmd == "CHEAT":
                 print("Cheater!")
                 show =  False
                 green = "-----"
                 yellow = []
                 gray = ""
                 for i, arg in enumerate(args):
-                    if arg == "green":
+                    if arg == "GREEN":
                         green = args[i+1]
-                    if arg == "yellow":
+                    if arg == "YELLOW":
                         yellow = args[i+1].split(',')
-                    if (arg == "gray") or (arg == "grey"):
+                    if (arg == "GRAY") or (arg == "GREY"):
                         gray = args[i+1]
-                    if arg in ['SHOW', 'show', 'PRINT', 'print']:
+                    if arg in ['SHOW', 'PRINT']:
                         show = True
 
                 wa.cheat(green, yellow, gray, show)
