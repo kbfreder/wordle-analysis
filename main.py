@@ -1,6 +1,8 @@
 
 import os
-from flask import Flask, render_template, request, redirect
+from flask import (
+    Flask, render_template, request, redirect, g
+)
 from werkzeug.utils import secure_filename
 
 from src.cv import ScreenShotAnalysis
@@ -30,8 +32,5 @@ def upload_image():
 
     return render_template("main.html")
 
-@app.route("/display/<filename>")
-def display_image(filename):
-    return redirect(url_for('static', filename='/images/'+filename), code=301)
 
 app.run(port=5000, debug=True)

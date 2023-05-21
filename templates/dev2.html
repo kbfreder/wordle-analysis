@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>KendraBot - Wordle Helper</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
     
 </head>
 
@@ -16,7 +17,7 @@
 
         <form method="post" action="/home" enctype="multipart/form-data" id="upload">
             <p><input type="file" name="file" autocomplete="off"></p>
-            <p><input type="submit" value="Upload & Analyze"></p>
+            <p><input type="submit" value="Upload"></p>
         </form>
 
 
@@ -24,6 +25,19 @@
         <div>
             <img src="{{ url_for('static', filename='/images/'+filename) }}" style="width:260px;height:300px;">
         </div>
+
+        <!-- <form method="post" action="/analyze" formaction="/analyze"> -->
+        <form method="get" action="/analyze" formaction="/analyze">
+            <p>
+                <!-- <input type="submit" value="Analyze" form="upload"> -->
+                <!-- <input type="submit" value="Analyze" form="upload" data-disable-with="
+                Analyzing..."> -->
+                <input type="text" name="filename" value={{ filename }} hidden>
+                <button type="submit">Analyze</button>
+
+                <!-- <button id="analyze" formaction="/analyze" formmethod="post">Analyze</button> -->
+            </p>
+        </form>
     
         {% if text %}
             <div>
@@ -31,7 +45,12 @@
         </div>
         {% endif %}
         
+
     {% endif %}
+
+
+
+
 
 </section>
 
