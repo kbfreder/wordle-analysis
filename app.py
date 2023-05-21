@@ -17,7 +17,12 @@ app = Flask(__name__)
 app.config['IMAGE_UPLOADS'] = 'static/images/'
 
 
-@app.route("/home", methods=['GET', 'POST'])
+@app.route("/")
+def index():
+    return render_template("main.html")
+
+
+@app.route("/upload", methods=['GET', 'POST'])
 def upload_image():
     if request.method == "POST":
         image = request.files['file']
