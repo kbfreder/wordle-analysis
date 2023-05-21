@@ -1,26 +1,46 @@
 <!DOCTYPE html>
+<html lang="en">
 
-<title>Kendrabot - Wordle Helper</title>
+<head>
+    <meta charset="UTF-8">
+    <title>KendraBot - Wordle Helper</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    
+</head>
 
-<h2>Upload a screen shot</h2>
+<body>
+    <section class="main">
+        <h1>KendraBot: A Wordle Helper</h1>
+        <p></p>
+        <h2>Upload a screen shot</h2>
 
-<!-- <div>
-    <img src="../static/images/gray-knock.png">
-</div> -->
+        <form method="post" action="/home" enctype="multipart/form-data">
+            <p><input type="file" name="file" autocomplete="off" required></p>
+            <p><input type="submit" value="Upload"></p>
+        </form>
+        
+    <!-- <div>
+        <img src="../static/images/gray-knock.png" style="width:260px;height:300px;">
+    </div> -->
 
-{% if filename %}
-    <div>
-        <img src="{{ url_for('static', filename='/images/'+filename) }}" style="width:260px;height:300px;">
-    </div>
-{% endif %}
+    {% if filename %}
+        <div>
+            <img src="{{ url_for('static', filename='/images/'+filename) }}" style="width:260px;height:300px;">
+            <p>Number of remaining words = {{ text }}</p>
+        </div>
+    {% endif %}
 
 
 
-<form method="post" action="/home" enctype="multipart/form-data">
-    <p>
-        <input type="file" name="file" autocomplete="off" required>
-    </p>
-    <p>
-        <input type="submit" value="Submit">
-    </p>
-</form>
+    <form method="post" action="/analyze">
+        <p>
+            <input type="submit" value="Analyze">
+        </p>
+    </form>
+
+</section>
+
+</body>
+
+</html>

@@ -25,9 +25,8 @@ def upload_image():
         filename = secure_filename(image.filename)
         img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
         image.save(img_path)
-        # cv.test(img_path)
-        cv.process(img_path)
-        return render_template("main.html", filename=filename)
+        text = cv.process(img_path)
+        return render_template("main.html", filename=filename, text=text)
 
     return render_template("main.html")
 
