@@ -17,7 +17,6 @@
             <p><input type="submit" value="Upload"></p>
         </form>
 
-
     {% if filename %}
         <div>
             <img src="{{ url_for('static', filename='/images/'+filename) }}" style="width:260px;height:300px;">
@@ -36,7 +35,6 @@
             <p>Number of remaining words = {{ text }}</p>
         </div>
         {% endif %}
-        
 
     {% endif %}
 

@@ -1,7 +1,5 @@
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from collections import defaultdict
 
 import pytesseract
 TESSERACT_PATH = "/usr/local/Cellar/tesseract/5.3.1/bin/tesseract"
@@ -124,40 +122,4 @@ class ScreenShotAnalysis:
         print(row_colors)
         result = self.wa.new_cheat(row_letters, row_colors)
         return result
-
-        # num_rows = len(row_letters)
-        # rows = [list(zip(row_letters[r], row_colors[r])) for r in range(num_rows)]
-        # return rows
-
-        # # iterate over rows and convert separate letter / color lists
-        # # to input for "cheat" function
-
-
-        # # TODO: actually, need to collect grays and yellows
-        # # across rows, and just take the last row of green
-        # # (or max green, if not playing hard mode
-
-        # for i in range(num_rows):
-        #     row = list(zip(row_letters[n], row_colors[n]))
-        #     green = ""
-        #     yellow_dict = defaultdict(list)
-        #     gray = ""
-
-        #     for i, (letter, color) in enumerate(row):
-        #         letter = letter.lower()
-        #         if color == 'gray':
-        #             gray += letter
-        #             green += "-"
-        #         elif color == "yellow":
-        #             yellow_dict[letter].append(i)
-        #             green += "-"
-        #         elif color == 'green':
-        #             green += letter
-            
-        #     yellow = []
-        #     for i, (key, vals) in enumerate(yellow_dict.items()):
-        #         temp_list = ["-"]*5
-        #         for val in vals:
-        #             temp_list[val] = key
-        #         yellow.append(('').join(temp_list))
     
