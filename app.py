@@ -45,8 +45,10 @@ def analyze_image():
     # we already sanitized this when image was uploaded
     filename = request.args.get('filename')
     img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
-    text = cv.process(img_path)
-    return render_template("main.html", filename=filename, text=text)
+    # text = cv.process(img_path)
+    num_words, word_list = cv.process(img_path)
+    return render_template("main.html", filename=filename, text=num_words, 
+                           word_list=word_list)
 
 
 app.run(port=5000)

@@ -21,6 +21,14 @@ h2 {
     font-weight: 500;
     padding: 10px 0;
 }
+h3 {
+    font-size: 28px;
+    font-weight: 300;
+    padding: 10px 0;
+}
+summary {
+    font-style: italic;
+}
 /* class */
 .main {
     /* display: flex; */
@@ -30,4 +38,8 @@ h2 {
     justify-content: space-between;
     height: 100vh;
     width: 100%;
+}
+.main #instruct {
+    font-style: bold;
+    font-size: 18px;
 }

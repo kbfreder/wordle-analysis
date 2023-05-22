@@ -120,6 +120,5 @@ class ScreenShotAnalysis:
         print("Detected letters & color codes:")
         print(row_letters)
         print(row_colors)
-        result = self.wa.new_cheat(row_letters, row_colors)
-        return result
-    
+        num_words, word_list = self.wa.new_cheat(row_letters, row_colors, True)
+        return num_words, word_list

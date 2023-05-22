@@ -23,7 +23,7 @@ This is not a wordle clone, nor a [wordle-bot](https://www.nytimes.com/interacti
 - create virtual environment and install packages in `requirements.txt`
 
 
-For web app, you will also need to install `tesseract` to your system. Or Google "how to install tesseract" and follow those; they are probably better. You may need to do this before you install the python library (`pytesseract`). I can't remember.
+For web app, you will also need to install `tesseract` to your system. Here are some simple instrutions. You could also Google "how to install tesseract" and follow those; they are probably better. You may need to do this before you install the python library (`pytesseract`). I can't remember.
 
 **On MacOS**
 - `brew install tesseract`

@@ -10,8 +10,8 @@
 <body>
     <section class="main">
         <h1>KendraBot: A Wordle Helper</h1>
-        <h2>Upload a screen shot</h2>
-
+        
+        <p id="instruct">Upload a screen shot</p>
         <form method="post" action="/upload" enctype="multipart/form-data" id="upload">
             <p><input type="file" name="file" autocomplete="off"></p>
             <p><input type="submit" value="Upload"></p>
@@ -33,6 +33,10 @@
         {% if text %}
             <div>
             <p>Number of remaining words = {{ text }}</p>
+            <details>
+                <summary>Reveal Words</summary>
+                <p>{{ word_list }}</p>
+            </details>
         </div>
         {% endif %}
 
