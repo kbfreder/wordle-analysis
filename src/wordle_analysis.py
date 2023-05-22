@@ -281,7 +281,7 @@ class WordleAnalysis:
         print(f"Number matching words: {len(matching_words)}")
         if print_words:
             print(matching_words)
-            return matching_words
+            return len(matching_words), matching_words
         else:
             return len(matching_words)
 
