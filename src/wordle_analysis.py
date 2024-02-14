@@ -29,6 +29,7 @@ import regex as re
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from copy import deepcopy
 
 
 ABOUT = """
@@ -246,40 +247,46 @@ class WordleAnalysis:
         num_rows = len(list_of_guesses)
         rows = [list(zip(list_of_guesses[r], list_of_patterns[r])) for r in range(num_rows)]
         
-        matching_words = self.word_list[:]
-        for row in rows:
-            # first pass: get gray & yellow letters
-            gray_letters = []
-            yellow_letters = []
-            for i, (c, m) in enumerate(row):
-                if m == 0:
-                    gray_letters.append(c)
-                elif m == 1:
-                    yellow_letters.append(c)
+        matching_words = deepcopy(self.word_list)
+        gray_letters = list(set([c for row in rows for c,m in row if m == 0]))
+        yellow_letters = list(set([c for row in rows for c,m in row if m == 1]))
+        # must remove yellow letters from grey. A letter can appear in both lists if 
+        # we've guessed it two different positions
+        no_chars = list(set(gray_letters) - set(yellow_letters))
 
-            # second pass, derive green+gray regex    
-            green_gray_regex = r""
-            for i, (c, m) in enumerate(row):
-                if m == 2:
-                    green_gray_regex += re.escape(c)
-                else:
-                    no_chars = ''.join(gray_letters)
-                    if m == 1:
-                        # add yellow letter
-                        no_chars += c
-                    green_gray_regex += r"[^" + re.escape(no_chars) + r"]"
+        # initial pass: characters we have positional information about
+        # (green (pos), grey (neg), yellow (neg))
+        regex_list = []
 
+        for pos in range(5):
+            col = [row[pos] for row in rows]
+            col_ms = [m for c,m in col]
+            if 2 in col_ms:
+                # there can only be one green char per column
+                green_char = col[col_ms.index(2)][0]
+                pos_regex = re.escape(green_char)
+            elif 1 in col_ms:
+                # there can be >1 yellow char per column; capture them all
+                yellow_chars = [c for c,m in col if m == 1]
+                pos_no_chars = ''.join(list(set(no_chars + yellow_chars)))
+                pos_regex = r"[^" + re.escape(pos_no_chars) + r"]"
+            else:
+                pos_regex = r"[^" + re.escape(no_chars) + r"]"
 
-            # do initial regex select
-            matching_words = [w for w in matching_words 
-                            if re.search(green_gray_regex, w) is not None]
-            
-            # apply yellow letter constraints
-            for y in yellow_letters:
-                matching_words = [w for w in matching_words if y in w]
+            regex_list.append(pos_regex)
+        
+        regex1 = ''.join(regex_list)
+        matching_words = [w for w in matching_words 
+                        if re.search(regex1, w) is not None]
+        
+        # second pass: apply yellow letter contraints
+        # matching words must have *all* yellow letters
+        matching_words = [w for w in matching_words 
+                             if len(set(yellow_letters) & set(w)) == len(yellow_letters)]
         
         print(f"Number matching words: {len(matching_words)}")
         if print_words:
+            matching_words.sort()
             print(matching_words)
             return len(matching_words), matching_words
         else:
