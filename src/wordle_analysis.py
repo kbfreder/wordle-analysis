@@ -19,7 +19,6 @@ TODO:
 """
 
 import os
-import argparse
 import readline # not used but necessary
 import sys
 import random
@@ -39,6 +38,10 @@ ABOUT = """
     """
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 WORD_LIST_PATH = "../input/nyt_wordle_list.txt"
+
+WORDS_UPPER = True # whether to convert words to uppercase for analysis
+
+
 
 
 class WordleAnalysis:
@@ -70,7 +73,8 @@ class WordleAnalysis:
 
         # How often a word contains a letter (irrespective of repeat letters in word)
         letter_word_counts = {}
-        for char in [chr(x) for x in range(97, 123)]:
+        chr_range = range(65,91) if WORDS_UPPER else range(97, 123)
+        for char in [chr(x) for x in chr_range]:
             num_words = len([word for word in word_list if char in word])
             letter_word_counts[char] = num_words / len(word_list)
 
@@ -132,6 +136,7 @@ class WordleAnalysis:
         print(random.sample(word_list, n))
     
     def get_letter_freq(self, letter):
+        letter = letter.upper() if WORDS_UPPER else letter.lower()
         if self.letter_freq is None:
             self._calc_letter_freq()
         if letter == "all":
@@ -149,6 +154,8 @@ class WordleAnalysis:
         """Get word "score", based on letter frequencies
         Useful for starting guess
         """
+        word = word.upper() if WORDS_UPPER else word.lower()
+
         if self.word_score_dict is None:
             self._calc_word_scores()
         score_dict = self.word_score_dict.get(word, None)
@@ -163,6 +170,8 @@ class WordleAnalysis:
                 print("Note: word is not in Wordle list.")
     
     def letter_pattern(self, pattern, show_words=False):
+        pattern = pattern.upper() if WORDS_UPPER else pattern.lower()
+        
         regex_patt = re.escape(pattern) 
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -172,6 +181,8 @@ class WordleAnalysis:
             print(matching_words)
 
     def starts_with(self, pattern, show_words=False):
+        pattern = pattern.upper() if WORDS_UPPER else pattern.lower()
+
         regex_patt = r"^" + re.escape(pattern)
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -181,6 +192,8 @@ class WordleAnalysis:
             print(matching_words)
 
     def ends_with(self, pattern, show_words=False):
+        pattern = pattern.upper() if WORDS_UPPER else pattern.lower()
+
         regex_patt = re.escape(pattern) + r"$"
         matching_words = [w for w in self.word_list if re.search(regex_patt, w) is not None]
         num = len(matching_words)
@@ -233,6 +246,7 @@ class WordleAnalysis:
         if show:
             remaining_words.sort()
             print(remaining_words)
+
 
     def new_cheat(self, list_of_guesses, list_of_patterns, print_words=False):
         """Given guesses and resulting patterns, returns number of remaining words,
@@ -292,8 +306,8 @@ class WordleAnalysis:
         else:
             return len(matching_words)
 
-def error_msg():
-    print("Command not recognized. Please try again.")
+def error_msg(cmd):
+    print(f"Command ('{cmd}') not recognized. Please try again.")
     print(help_msg)
     print()
 
@@ -336,63 +350,65 @@ if __name__ == "__main__":
     Type 'help' to list commands.
     Type 'exit' to exit the program.
     """
+
+    show_words = ['show', 'print']
     
     entry = ""
     print(default_msg)
     while True:
-        entry = input()
-        entry = entry.upper()
+        entry = input().lower()
+        # entry = entry.upper()
 
-        if entry == "HELP":
+        if entry == "help":
             print(help_msg)
-        elif entry == "RANDOM":
+        elif entry == "random":
             print("Getting random words")
             wa.get_random_words()
         elif entry in ["", "\n"]:
             continue
-        elif entry in ["EXIT", "QUIT"]:
+        elif entry in ["exit", "quit"]:
             print("Goodbye")
             sys.exit(0)
         else:
             entry_list = entry.split(" ")
             cmd = entry_list[0]
             args = entry_list[1:]
-            if cmd == "letter-frequency".upper():
+            if cmd == "letter-frequency":
                 wa.get_letter_freq(args[0])
             elif cmd == "word-score":
                 wa.get_score_of_word(args[0])
-            elif cmd == "letter-pattern".upper():
-                if args[-1] in ['SHOW', 'PRINT',]:
+            elif cmd == "letter-pattern":
+                if args[-1] in show_words:
                     wa.letter_pattern(args[0], True)
                 else:
                     wa.letter_pattern(args[0], False)
-            elif cmd == "starts-with".upper():
-                if args[-1] in ['SHOW', 'PRINT']:
+            elif cmd == "starts-with":
+                if args[-1] in show_words:
                     wa.starts_with(args[0], True)
                 else:
                     wa.starts_with(args[0], False)
-            elif cmd == "ends-with".upper():
-                if args[-1] in ['SHOW', 'PRINT']:
+            elif cmd == "ends-with":
+                if args[-1] in show_words:
                     wa.ends_with(args[0], True)
                 else:
                     wa.ends_with(args[0], False)
-            elif cmd == "CHEAT":
+            elif cmd == "chear":
                 print("Cheater!")
                 show =  False
                 green = "-----"
                 yellow = []
                 gray = ""
                 for i, arg in enumerate(args):
-                    if arg == "GREEN":
+                    if arg == "green":
                         green = args[i+1]
-                    if arg == "YELLOW":
+                    if arg == "yellow":
                         yellow = args[i+1].split(',')
-                    if (arg == "GRAY") or (arg == "GREY"):
+                    if (arg == "gray") or (arg == "grey"):
                         gray = args[i+1]
-                    if arg in ['SHOW', 'PRINT']:
+                    if arg in show_words:
                         show = True
 
                 wa.cheat(green, yellow, gray, show)
             else:
-                error_msg()
+                error_msg(cmd)
         print()
