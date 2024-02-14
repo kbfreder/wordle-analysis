@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 
 import pytesseract
-TESSERACT_PATH = "/usr/local/Cellar/tesseract/5.3.1/bin/tesseract"
-pytesseract.pytesseract.tesseract_cmd=TESSERACT_PATH
+import os
+
+pytesseract.pytesseract.tesseract_cmd=os.environ.get('TESSERACT_PATH')
 
 from .wordle_analysis import WordleAnalysis
 

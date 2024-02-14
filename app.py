@@ -9,12 +9,11 @@ from werkzeug.utils import secure_filename
 from src.cv import ScreenShotAnalysis
 
 
-cv = ScreenShotAnalysis()
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
+cv = ScreenShotAnalysis()
 app = Flask(__name__)
 app.config['IMAGE_UPLOADS'] = 'static/images/'
+os.makedirs(os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS']), exist_ok=True)
 
 
 @app.route("/")
@@ -32,6 +31,7 @@ def upload_image():
             redirect(request.url)
 
         filename = secure_filename(image.filename)
+        print(filename)
         img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
         image.save(img_path)
         g.filename = filename
@@ -47,8 +47,9 @@ def analyze_image():
     img_path = os.path.join(BASE_DIR, app.config['IMAGE_UPLOADS'], filename)
     # text = cv.process(img_path)
     num_words, word_list = cv.process(img_path)
+    # TODO: handle num_words = 0 and word_list = []
     return render_template("main.html", filename=filename, text=num_words, 
                            word_list=word_list)
 
 
-app.run(port=5000)
+app.run(port=8080, debug=True)

@@ -1,9 +1,11 @@
 regex
 scikit-learn
-opencv-python
+# opencv-python
 pytesseract
 flask
+python-dotenv
 
 # for notebooks
 pandas
 matplotlib
+ipykernel
